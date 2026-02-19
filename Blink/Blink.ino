@@ -26,19 +26,71 @@
 */
 
 // the setup function runs once when you press reset or power the board
+// ----------------------------------------
+// ----------------------------------------
+// Realistic Cop Car Lights + Siren Project
+// Smooth siren sound (fast frequency sweep)
+// Slower LED blinking (250ms)
+// Uses millis() so sound + lights work together
+// ----------------------------------------
+
+int led1 = 10;
+int led2 = 9;
+int piezoPin = 11;
+
+// Variables for LED timing
+unsigned long previousLedMillis = 0;
+int ledState = 0;  // 0 = LED1 on, 1 = LED2 on
+
+// Variables for siren timing
+unsigned long previousSirenMillis = 0;
+int freq = 600;         // starting frequency
+int step = 20;          // how fast the frequency changes
+int maxFreq = 1600;
+int minFreq = 600;
+
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(10, OUTPUT);
-  pinMode(9, OUTPUT);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
 }
 
-// the loop function runs over and over again forever
 void loop() {
-  digitalWrite(10, HIGH);  // turn the LED on (HIGH is the voltage level)
-  digitalWrite(9, LOW);   // turn the LED off by making the voltage LOW
-  delay(100);   
-                     // wait for a second
-  digitalWrite(10, LOW);   // turn the LED off by making the voltage LOW
-  digitalWrite(9, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(100);                      // wait for a second
+  unsigned long currentMillis = millis();
+
+  // -----------------------------
+  // LED Blinking (250ms timing)
+  // -----------------------------
+  if (currentMillis - previousLedMillis >= 250) {
+    previousLedMillis = currentMillis;
+
+    // Toggle between the two LEDs
+    if (ledState == 0) {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      ledState = 1;
+    } 
+    else {
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      ledState = 0;
+    }
+  }
+
+  // -----------------------------
+  // Siren Sound (fast timing)
+  // -----------------------------
+  if (currentMillis - previousSirenMillis >= 15) {
+    previousSirenMillis = currentMillis;
+
+    tone(piezoPin, freq);  // Play tone at current frequency
+
+    // Change the frequency
+    freq += step;
+
+    // Reverse direction at limits (up/down sweep)
+    if (freq >= maxFreq || freq <= minFreq) {
+      step = -step;  // reverse sweep direction
+    }
+  }
 }
+
