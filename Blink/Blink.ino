@@ -28,42 +28,52 @@
 // the setup function runs once when you press reset or power the board
 // ----------------------------------------
 // ----------------------------------------
-// Realistic Cop Car Lights + Siren Project
-// Smooth siren sound (fast frequency sweep)
-// Slower LED blinking (250ms)
-// Uses millis() so sound + lights work together
-// ----------------------------------------
+// Realistic Cop Car Lights + Siren + Fading LED
+// ---------------------------------------------
+// LED1 & LED2 alternate every 250ms
+// Piezo siren sweeps frequency smoothly
+// LED on pin 6 fades in/out using PWM
+// All run simultaneously using millis()
 
+// ---------------- Pins ----------------
 int led1 = 10;
 int led2 = 9;
 int piezoPin = 11;
+int fadeLed = 6;
 
-// Variables for LED timing
+// ---------------- LED Timing ----------------
 unsigned long previousLedMillis = 0;
 int ledState = 0;  // 0 = LED1 on, 1 = LED2 on
 
-// Variables for siren timing
+// ---------------- Siren Timing ----------------
 unsigned long previousSirenMillis = 0;
-int freq = 600;         // starting frequency
-int step = 20;          // how fast the frequency changes
+int freq = 600;         
+int step = 20;          
 int maxFreq = 1600;
 int minFreq = 600;
+
+// ---------------- Fade LED Timing ----------------
+unsigned long previousFadeMillis = 0;
+int brightness = 0;     
+int fadeStep = 5;       
 
 void setup() {
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
+  pinMode(piezoPin, OUTPUT);
+  pinMode(fadeLed, OUTPUT);
 }
 
 void loop() {
+
   unsigned long currentMillis = millis();
 
   // -----------------------------
-  // LED Blinking (250ms timing)
+  // LED Alternating (250ms)
   // -----------------------------
   if (currentMillis - previousLedMillis >= 250) {
     previousLedMillis = currentMillis;
 
-    // Toggle between the two LEDs
     if (ledState == 0) {
       digitalWrite(led1, HIGH);
       digitalWrite(led2, LOW);
@@ -77,20 +87,34 @@ void loop() {
   }
 
   // -----------------------------
-  // Siren Sound (fast timing)
+  // Siren Sweep (15ms updates)
   // -----------------------------
   if (currentMillis - previousSirenMillis >= 15) {
     previousSirenMillis = currentMillis;
 
-    tone(piezoPin, freq);  // Play tone at current frequency
+    tone(piezoPin, freq);
 
-    // Change the frequency
     freq += step;
 
-    // Reverse direction at limits (up/down sweep)
     if (freq >= maxFreq || freq <= minFreq) {
-      step = -step;  // reverse sweep direction
+      step = -step;
+    }
+  }
+
+  // -----------------------------
+  // PWM Fade LED (20ms updates)
+  // -----------------------------
+  if (currentMillis - previousFadeMillis >= 20) {
+    previousFadeMillis = currentMillis;
+
+    analogWrite(fadeLed, brightness);
+
+    brightness += fadeStep;
+
+    if (brightness <= 0 || brightness >= 255) {
+      fadeStep = -fadeStep;
     }
   }
 }
+
 
