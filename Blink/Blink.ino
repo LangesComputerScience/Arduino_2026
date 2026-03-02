@@ -25,43 +25,53 @@
   https://docs.arduino.cc/built-in-examples/basics/Blink/
 */
 
-// the setup function runs once when you press reset or power the board
-// ----------------------------------------
-// ----------------------------------------
-// Realistic Cop Car Lights + Siren + Fading LED
-// ---------------------------------------------
+// Realistic Cop Car Lights + Siren + Multi Fade LEDs
+// --------------------------------------------------
 // LED1 & LED2 alternate every 250ms
 // Piezo siren sweeps frequency smoothly
-// LED on pin 6 fades in/out using PWM
-// All run simultaneously using millis()
+// THREE LEDs fade independently using PWM
+// Uses millis() so everything runs together
 
 // ---------------- Pins ----------------
 int led1 = 10;
 int led2 = 9;
 int piezoPin = 11;
-int fadeLed = 6;
+
+int fadeLed1 = 6;
+int fadeLed2 = 5;
+int fadeLed3 = 3;
 
 // ---------------- LED Timing ----------------
 unsigned long previousLedMillis = 0;
-int ledState = 0;  // 0 = LED1 on, 1 = LED2 on
+int ledState = 0;
 
 // ---------------- Siren Timing ----------------
 unsigned long previousSirenMillis = 0;
-int freq = 600;         
-int step = 20;          
+int freq = 600;
+int step = 20;
 int maxFreq = 1600;
 int minFreq = 600;
 
 // ---------------- Fade LED Timing ----------------
 unsigned long previousFadeMillis = 0;
-int brightness = 0;     
-int fadeStep = 5;       
+
+// Individual brightness levels
+int brightness1 = 0;
+int brightness2 = 85;   // offset start positions
+int brightness3 = 170;
+
+int fadeStep1 = 5;
+int fadeStep2 = 5;
+int fadeStep3 = 5;
 
 void setup() {
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
   pinMode(piezoPin, OUTPUT);
-  pinMode(fadeLed, OUTPUT);
+
+  pinMode(fadeLed1, OUTPUT);
+  pinMode(fadeLed2, OUTPUT);
+  pinMode(fadeLed3, OUTPUT);
 }
 
 void loop() {
@@ -69,7 +79,7 @@ void loop() {
   unsigned long currentMillis = millis();
 
   // -----------------------------
-  // LED Alternating (250ms)
+  // Alternating LEDs (250ms)
   // -----------------------------
   if (currentMillis - previousLedMillis >= 250) {
     previousLedMillis = currentMillis;
@@ -87,7 +97,7 @@ void loop() {
   }
 
   // -----------------------------
-  // Siren Sweep (15ms updates)
+  // Siren Sweep (15ms)
   // -----------------------------
   if (currentMillis - previousSirenMillis >= 15) {
     previousSirenMillis = currentMillis;
@@ -102,19 +112,30 @@ void loop() {
   }
 
   // -----------------------------
-  // PWM Fade LED (20ms updates)
+  // THREE PWM Fade LEDs (20ms)
   // -----------------------------
   if (currentMillis - previousFadeMillis >= 20) {
     previousFadeMillis = currentMillis;
 
-    analogWrite(fadeLed, brightness);
+    // LED 1
+    analogWrite(fadeLed1, brightness1);
+    brightness1 += fadeStep1;
+    if (brightness1 <= 0 || brightness1 >= 255) {
+      fadeStep1 = -fadeStep1;
+    }
 
-    brightness += fadeStep;
+    // LED 2
+    analogWrite(fadeLed2, brightness2);
+    brightness2 += fadeStep2;
+    if (brightness2 <= 0 || brightness2 >= 255) {
+      fadeStep2 = -fadeStep2;
+    }
 
-    if (brightness <= 0 || brightness >= 255) {
-      fadeStep = -fadeStep;
+    // LED 3
+    analogWrite(fadeLed3, brightness3);
+    brightness3 += fadeStep3;
+    if (brightness3 <= 0 || brightness3 >= 255) {
+      fadeStep3 = -fadeStep3;
     }
   }
 }
-
-
